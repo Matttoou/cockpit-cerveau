@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://api.github.com; img-src 'self' data:; style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#f4f3ef" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141413" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Cockpit">
+<title>Cockpit Cerveau</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1 id="titre">Cockpit</h1>
+  <div class="outils">
+    <span id="chargement" class="tourne" hidden aria-label="Chargement">◌</span>
+    <button id="rafraichir" aria-label="Actualiser">↻</button>
+    <button id="deconnexion" aria-label="Oublier le jeton">⏻</button>
+  </div>
+</header>
+<main id="vue"><p class="intro">Chargement…</p></main>
+<nav aria-label="Sections">
+  <a href="#aujourdhui"><span aria-hidden="true">◐</span>Aujourd'hui</a>
+  <a href="#traiter"><span aria-hidden="true">✓</span>À traiter</a>
+  <a href="#evolution"><span aria-hidden="true">↗</span>Évolution</a>
+  <a href="#memoire"><span aria-hidden="true">❖</span>Mémoire</a>
+</nav>
+<div id="toast" role="status" hidden></div>
+<script src="logic.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
