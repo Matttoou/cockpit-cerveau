@@ -5,7 +5,7 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
   const parisDate = (d) => new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Paris" }).format(d);
-  const parisHeure = (d) => +new Intl.DateTimeFormat("fr-FR", { timeZone: "Europe/Paris", hour: "numeric", hourCycle: "h23" }).format(d);
+  const parisHeure = (d) => +new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Paris", hour: "2-digit", hourCycle: "h23" }).format(d); // fr-FR écrit « 10 h »
 
   function depuis(date, now) {
     const h = (now - date) / H;
@@ -36,7 +36,8 @@
     const suite = i > 0 ? brut.slice(i + 3) : "";
     const date = (/\d{4}-\d{2}-\d{2}/.exec(suite) || [])[0] || "";
     const liens = [...brut.matchAll(/\[\[([^\]]+)\]\]/g)].map((x) => x[1]);
-    return { brut, barre, tag, texte, date, source: suite.replace(/^.*?\d{4}-\d{2}-\d{2}\s*·?\s*/, ""), liens };
+    const maj = (suite.match(/\d{4}-\d{2}-\d{2}/g) || []).sort().pop() || ""; // « 2026-10-05 · notion ; 2026-10-07 · x » : la plus récente
+    return { brut, barre, tag, texte, date, maj, source: suite.replace(/^.*?\d{4}-\d{2}-\d{2}\s*·?\s*/, ""), liens };
   }
 
   const puces = (texte) => texte.split("\n").filter((l) => /^- /.test(l)).map(ligne);
@@ -102,6 +103,58 @@
     return recent ? { actifs, historiques, recent } : { actifs: [], historiques: ouv.slice().sort((a, b) => b.date.localeCompare(a.date)), recent };
   }
 
+  const titre = (corps) => ((/^#\s+(.+)/m.exec(corps) || [])[1] || "").trim();
+
+  // shortcut: un point d'a-clarifier est un choix s'il porte sur un rôle, une règle ou une validité, sinon un fait à confirmer ;
+  // à remplacer par une étiquette posée par Hermès si le classement se trompe trop souvent.
+  const CHOIX = /quel rôle|rôles? (restant|respectif)|vise-t-|reste-t-(il|elle) valable|faut-il|doit-(il|elle)|garder|décider|moratoire/i;
+  // Les actions techniques proposées par le rapport (Git, publication, tâches) vont aux agents, pas aux décisions.
+  const TECHNIQUE = /\bgit\b|commit|stash|synchronis|publier le rapport|\bcron\b|inbox|jeton|\bskill\b|script/i;
+  const nature = (t) => (TECHNIQUE.test(t) ? "technique" : CHOIX.test(t) ? "choix" : "fait");
+
+  // Ce qui reste ouvert dans une fiche : vérifications, points ouverts, prérequis, idées.
+  const PISTE = /à (re)?vérifier|à (re)?contrôler|à confirmer|à formaliser|à préciser|à structurer|à identifier|à venir|à reprendre|à trancher|points? ouverts?|restent ouverts|prérequis|prioritaire|^idée\b/i;
+
+  // Synthèse d'un projet : état, évolutions, décisions, questions, pistes ; chaque ligne n'apparaît qu'une fois.
+  function projet(f, decisions, aClarifier) {
+    const lignes = puces(f.corps).filter((x) => x.tag && !x.barre);
+    const bref = puces((sections(f.corps).find((s) => /en bref/i.test(s.titre)) || { lignes: [] }).lignes.join("\n")).filter((x) => x.tag && !x.barre);
+    const vu = new Set(bref.map((x) => x.brut));
+    const prend = (x) => !vu.has(x.brut) && vu.add(x.brut);
+    const recentes = (a, b) => b.maj.localeCompare(a.maj);
+    const decs = ouvertes(decisions).filter((x) => x.tag === "Décision" && x.liens.includes(f.nom));
+    for (const x of lignes) if (x.tag === "Décision" && !decs.some((d) => proche(d.texte, x.texte))) decs.push(x);
+    decs.forEach((x) => vu.add(x.brut));
+    return {
+      bref,
+      evolutions: lignes.filter((x) => x.tag !== "Décision" && !vu.has(x.brut)).sort(recentes).slice(0, 4).filter(prend),
+      decisions: decs.sort(recentes),
+      questions: ouvertes(aClarifier).filter((x) => x.liens.includes(f.nom)),
+      pistes: lignes.filter((x) => PISTE.test(x.texte)).filter(prend),
+    };
+  }
+
+  // Ce qui est entré dans la mémoire depuis quelques jours (date de la ligne = date de l'information).
+  function changements(fiches, decisions, aClarifier, now, jours = 3) {
+    const depuis = parisDate(new Date(now - jours * 864e5));
+    const neuf = (x) => !x.barre && x.maj >= depuis;
+    return {
+      depuis,
+      decisions: ouvertes(decisions).filter((x) => x.tag === "Décision" && neuf(x)),
+      questions: ouvertes(aClarifier).filter(neuf),
+      fiches: fiches.map((f) => ({ nom: f.nom, lignes: puces(f.corps).filter((x) => x.tag && x.tag !== "Décision" && neuf(x)).sort((a, b) => b.maj.localeCompare(a.maj)) }))
+        .filter((x) => x.lignes.length).sort((a, b) => b.lignes.length - a.lignes.length),
+    };
+  }
+
+  // Dernières conversations lues par Hermès : « - 2026-10-20 · hermes 7e0573f6 : texte » (date parfois en plage « 2026-10-17/20 »).
+  function lectures(journal, n = 12) {
+    const l = journal.split("\n").map((x) => /^- (\d{4}-\d{2}-\d{2})\S*\s+·\s+(\S+)[^:]*:\s*(.+)/.exec(x)).filter(Boolean)
+      .map((m) => ({ date: m[1], source: m[2], texte: m[3] })).slice(-n).reverse();
+    const vide = (x) => /^rien de durable/i.test(x.texte);
+    return { total: l.length, retenues: l.filter((x) => !vide(x)), ignorees: l.filter(vide).length };
+  }
+
   const PIRE = { err: 3, warn: 2, info: 1, ok: 0 };
 
   // d = { commits, inbox: [chemins], rapport: {date, texte}|null, decisions, pourAssistants, fiches: [{nom, meta}] }
@@ -127,8 +180,12 @@
         resume: parisHeure(now) < 7 ? `Prévu à 5 h 45 · ${der}` : `Pas de rapport aujourd'hui · ${der}`,
         detail: "Normal si la nuit n'a rien apporté : Hermès reste alors silencieux." });
     }
+    // Une digestion publiée après le rapport (5 h 45) montre qu'Hermès a repris : le blocage est sans doute levé.
+    const td = dig && new Date(dig.commit.author.date);
+    const repris = d.rapport && td && (parisDate(td) > d.rapport.date || (parisDate(td) === d.rapport.date && parisHeure(td) >= 6));
     for (const b of d.rapport ? blocagesRapport(d.rapport.texte) : [])
-      out.push({ id: "blocage", titre: "Signalé par Hermès", etat: "warn", resume: b, detail: `D'après le rapport du ${d.rapport.date.split("-").reverse().join("/")}.` });
+      out.push({ id: "blocage", titre: "Signalé par Hermès", etat: repris ? "info" : "warn", resume: b,
+        detail: repris ? `Rapport du ${d.rapport.date.split("-").reverse().join("/")} ; Hermès a publié depuis, sans doute résolu.` : `D'après le rapport du ${d.rapport.date.split("-").reverse().join("/")}.` });
 
     const ages = d.inbox.map(dateInbox).filter(Boolean);
     const vieux = ages.length ? Math.max(...ages.map((t) => (now - t) / H)) : 0;
@@ -204,7 +261,7 @@
   }
 
   const api = { esc, parisDate, parisHeure, depuis, entete, ligne, puces, ouvertes, sections, questionsRapport, blocagesRapport,
-    dateInbox, typeCommit, proche, arbitrages, sante, etatGlobal, md, enLigne, cherche, pourChatGPT, sansAccent };
+    dateInbox, typeCommit, proche, arbitrages, titre, nature, projet, changements, lectures, sante, etatGlobal, md, enLigne, cherche, pourChatGPT, sansAccent };
   if (typeof module !== "undefined") module.exports = api;
   else root.Logic = api;
 })(this);

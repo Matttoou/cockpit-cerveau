@@ -1,26 +1,37 @@
 # Cockpit Cerveau
 
-Tableau de bord, sur iPhone et sur Mac, qui sert à superviser Cerveau : état du système, éléments à arbitrer, ce qui évolue, recherche dans la mémoire.
+Centre de pilotage personnel, sur iPhone et sur Mac : ce qui demande l'attention de Matthias, les décisions à prendre, l'état de ses projets, ce qui a changé, ce que font Hermès et les autres agents, et la recherche dans la mémoire.
 
 ## Principes
 - **Lecture seule par construction.** Le cockpit lit le dépôt GitHub privé `Matttoou/cerveau` avec un jeton qui n'a que la permission *Contents : Read-only*. Il ne peut techniquement rien écrire : Hermès reste le seul à écrire.
 - **Aucune duplication.** Le cockpit ne contient et ne stocke aucune donnée. À chaque ouverture, il relit Cerveau en direct.
 - **Pas de serveur, pas de coût, pas de dépendance.** C'est une page statique (HTML, CSS, JS sans bibliothèque). Le jeton reste dans le navigateur de l'appareil et n'est envoyé qu'à `api.github.com`, ce que la politique de sécurité de la page (CSP) impose.
 
-## Ce que montre chaque onglet
-| Onglet | Contenu | Source dans Cerveau |
+## Les cinq espaces
+| Espace | Contenu | Source dans Cerveau |
 |---|---|---|
-| **Aujourd'hui** | Bandeau d'état global ; une ligne par contrôle : digestion Hermès, rapport du matin, boîte de dépôt, export pour ChatGPT et Claude, fiches actives sans nouvelles depuis plus de 3 mois, blocages signalés par Hermès ; puis le rapport du jour | commits, `inbox/`, `journal/rapport-*.md`, `decisions.md`, `pour-assistants.md`, en-têtes des fiches |
-| **À traiter** | **Arbitrages actifs** : ce que le dernier rapport (2 jours au plus) met en avant, dédupliqué (une question déjà dans `a-clarifier.md` n'apparaît qu'une fois, avec sa date d'ouverture ; renvois et constats retirés). **Questions historiques**, repliées : le reste de `a-clarifier.md`, de la plus récente à la plus ancienne. Boutons Copier, et copie groupée pour en parler avec ChatGPT | `journal/rapport-*.md`, `a-clarifier.md` |
-| **Évolution** | 8 dernières décisions, mémoire active, autres projets en cours, activité des 7 derniers jours (digestions, dépôts du Mac, modifications manuelles), dernières lignes du journal | `decisions.md`, en-têtes, commits, `journal/AAAA-MM.md` |
-| **Mémoire** | Recherche plein texte, sans tenir compte des accents ; lecture des fiches, avec liens `[[…]]` cliquables, étiquettes colorées et provenance atténuée | toutes les fiches |
+| **Aujourd'hui** | La date et une phrase de synthèse ; **À ton attention** : un problème technique s'il y en a un, les décisions à prendre, les faits à confirmer ; **Ce qui a changé** depuis 3 jours (décisions, informations par fiche, nouvelles questions) ; **Projets en mouvement** ; dernier rapport d'Hermès, replié | toutes les fiches, `decisions.md`, `a-clarifier.md`, `journal/rapport-*.md` |
+| **Décisions** | **À décider** : les choix que seul Matthias peut faire (rôles, règles, orientation). **À confirmer** : les faits contradictoires, une réponse courte suffit. **Décisions prises** : les 12 dernières. Chaque point renvoie à son projet ; copie pour ChatGPT | `journal/rapport-*.md`, `a-clarifier.md`, `decisions.md` |
+| **Projets** | Cartes groupées comme dans `profil.md` (Pôle, Mémoire et IA, Référence) : statut, résumé, dernière évolution, questions et points ouverts. **Fiche projet** : où on en est, dernières évolutions, décisions prises, à clarifier, points ouverts et prochaines étapes, projets liés, fiche complète | `projets/`, `sujets/`, `profil.md` |
+| **Agents** | Une carte par agent (Hermès, Claude Code, ChatGPT et Claude) avec ses voyants ; actions techniques demandées par Hermès ; ce qu'Hermès a retenu des dernières conversations ; activité technique sur 7 jours, repliée | commits, `inbox/`, `journal/`, `pour-assistants.md` |
+| **Mémoire** | Recherche plein texte, sans tenir compte des accents ; toutes les fiches par niveau | toutes les fiches |
+
+### Comment le cockpit classe les questions
+Une question du rapport ou d'`a-clarifier.md` est rangée selon sa nature (`nature` dans `logic.js`) :
+- **technique** (Git, publication, tâches, inbox, skill) : espace Agents ;
+- **choix** (rôle, règle, validité d'une option, « faut-il ») : À décider ;
+- sinon **fait à confirmer** : À confirmer.
+Le classement repose sur des mots-clés. S'il se trompe trop souvent, la solution durable est qu'Hermès étiquette chaque question.
+
+### Comment est construite une fiche projet
+Tout vient de la fiche elle-même, sans saisie supplémentaire : « Où on en est » = section *En bref* ; « Dernières évolutions » = les 4 lignes les plus récentes (date la plus récente de la provenance) ; « Décisions prises » = lignes `[Décision]` de la fiche et de `decisions.md` qui citent `[[fiche]]` ; « À clarifier » = questions d'`a-clarifier.md` qui citent `[[fiche]]` ; « Points ouverts » = lignes contenant *à vérifier, à confirmer, à préciser, points ouverts, prérequis, prioritaire, Idée*… Une ligne n'apparaît qu'une fois.
 
 ### Règles des voyants
 - **Digestion** : vert si Hermès a publié depuis moins de 26 h, orange de 26 à 50 h, rouge au-delà.
 - **Rapport du matin** : vert si le rapport du jour (heure de Paris) existe. Sinon gris, car Hermès reste silencieux quand la nuit n'a rien apporté. L'envoi Telegram lui-même ne se voit pas depuis le dépôt.
 - **Boîte de dépôt** : orange au-delà de 6 fichiers, ou si un dépôt a plus de 30 h (il a manqué une digestion).
 - **Export** : orange si `pour-assistants.md` date de plus de 2,5 jours ou s'il ne contient pas la dernière décision. C'est le même contrôle que le rapport du matin.
-- **Signalé par Hermès** : chaque ligne des sections « Bloqué » ou « État technique » du dernier rapport.
+- **Signalé par Hermès** : chaque ligne des sections « Bloqué » ou « État technique » du dernier rapport. Si Hermès a publié une digestion après le rapport (après 6 h le jour du rapport), le signalement passe en gris, « sans doute résolu », et se replie.
 
 ## Accès
 ### Sur le Mac, sans jeton (mode local)
@@ -45,12 +56,12 @@ Tableau de bord, sur iPhone et sur Mac, qui sert à superviser Cerveau : état d
 - Aucune donnée de Cerveau n'est enregistrée sur l'appareil : elle reste en mémoire le temps de l'affichage.
 
 ## Développement
-- `logic.js` : logique pure (lecture des lignes `[Tag] … — date · source`, voyants, rendu Markdown sûr, recherche). Tests : `node --test test_logic.mjs`.
+- `logic.js` : logique pure (lecture des lignes `[Tag] … — date · source`, voyants, synthèse projet, changements récents, nature des questions, rendu Markdown sûr, recherche). Tests : `node --test test_logic.mjs`.
 - `app.js` : chargement (1 appel pour l'arborescence, 1 pour les commits, environ 35 fichiers lus) et affichage.
 - `serve.py` : mode local. Il imite les 3 appels GitHub à partir de `~/Cerveau`. `CERVEAU_REPO=/autre/clone` permet de tester sur un autre dépôt.
 - Le format du rapport du matin a changé le 21/10 : `questionsRapport` lit l'ancien format (« Interventions qui restent », « Prochaines actions ») et le nouveau (« Questions à arbitrer »).
 
-## Limites de la V1
+## Limites
 - L'état réel des tâches Hermès (dernier passage ok ou en erreur) et la remise Telegram ne sont pas dans le dépôt : le cockpit les déduit des commits et du rapport. Évolution possible, à valider : `cerveau.py publie` écrirait un petit `etat.json` (statut des tâches « Cerveau »), que le cockpit afficherait.
-- Un blocage signalé par le rapport reste affiché jusqu'au rapport suivant, même s'il a été corrigé entre-temps.
 - Pas de mode hors ligne : il faut du réseau pour lire GitHub.
+- « Ce qui a changé » se fonde sur la date des lignes (date de l'information), pas sur la date de leur intégration : une consolidation qui réimporte d'anciennes informations les montre comme anciennes.
