@@ -28,8 +28,9 @@ async function charger() {
   const rapport = md(/^journal\/rapport-\d{4}-\d{2}-\d{2}\.md$/).pop();
   const journal = md(/^journal\/\d{4}-\d{2}\.md$/).pop();
   const bases = ["profil.md", "preferences.md", "decisions.md", "a-clarifier.md", "pour-assistants.md"];
-  const tous = [...bases, ...fiches, rapport, journal].filter(Boolean);
-  const textes = Object.fromEntries(await Promise.all(tous.map(async (p) => [p, await fichier(p)])));
+  const tous = [...bases.filter((p) => chemins.includes(p)), ...fiches, rapport, journal].filter(Boolean);
+  const textes = Object.fromEntries(bases.map((p) => [p, ""])); // une fiche de base absente ne bloque pas le cockpit
+  Object.assign(textes, Object.fromEntries(await Promise.all(tous.map(async (p) => [p, await fichier(p)]))));
   return {
     lu: new Date(), commits, textes,
     inbox: md(/^inbox\/.+\.md$/).filter((p) => !p.endsWith("README.md")),
@@ -344,7 +345,9 @@ async function demarrer() {
     $("nav").hidden = false;
     afficher();
   } catch (e) {
-    if (e.status && !LOCAL) { oublier(); ecranJeton("Jeton refusé par GitHub (expiré, ou sans accès en lecture à Matttoou/cerveau)."); }
+    // Seul un 401 prouve que le jeton est mort (expiré ou révoqué) ; un 403 ou 404 peut être passager, on garde le jeton.
+    if (e.status === 401 && !LOCAL) { oublier(); ecranJeton("Jeton refusé par GitHub (expiré ou révoqué)."); }
+    else if (e.status && !LOCAL) $("#vue").innerHTML = `<p class="erreur">GitHub refuse la lecture (${e.status}). Touche ↻ dans un moment ; si ça dure, ⏻ pour changer de jeton.</p>`;
     else $("#vue").innerHTML = `<p class="erreur">Lecture impossible : ${L.esc(e.message)}. Vérifie la connexion puis touche ↻.</p>`;
   } finally { $("#chargement").hidden = true; }
 }
