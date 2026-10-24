@@ -1,7 +1,7 @@
 :root {
-  /* Monochrome à la Visualize Value : noir, blanc, traits fins. Seule couleur : le rouge d'un problème. */
+  /* Monochrome à la Visualize Value : noir, blanc, traits fins. Seules couleurs : l'ambre de « à surveiller » et le rouge d'un problème. */
   --fond: #ffffff; --carte: #ffffff; --texte: #0a0a0a; --doux: #737373; --ligne: #e5e5e5; --accent: #0a0a0a; --accent-doux: #f4f4f4;
-  --ok: #0a0a0a; --info: #c4c4c4; --warn: #0a0a0a; --err: #d92d20; --warn-doux: transparent;
+  --ok: #0a0a0a; --info: #c4c4c4; --warn: #d97706; --err: #d92d20; --warn-doux: transparent;
   --dit: transparent; --decision: transparent; --ia: transparent; --source: transparent;
   --ombre: none;
   --serif: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", system-ui, sans-serif;
@@ -12,7 +12,7 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --fond: #000000; --carte: #000000; --texte: #f5f5f5; --doux: #8a8a8a; --ligne: #262626; --accent: #f5f5f5; --accent-doux: #141414;
-    --ok: #f5f5f5; --info: #404040; --warn: #f5f5f5; --err: #ff5c4d; --warn-doux: transparent;
+    --ok: #f5f5f5; --info: #404040; --warn: #fbbf24; --err: #ff5c4d; --warn-doux: transparent;
     --dit: transparent; --decision: transparent; --ia: transparent; --source: transparent;
     --ombre: none;
     color-scheme: dark;
@@ -256,6 +256,7 @@ h1, .date-jour { font-weight: 700; }
 h2 { font-size: 11px; letter-spacing: 0.14em; font-weight: 500; }
 .carte, .liste > li, .banniere, .bloc, .alerte, .action { background: transparent; border: 1px solid var(--ligne); border-radius: 4px; box-shadow: none; }
 .alerte { border-color: var(--texte); }
+.alerte.etat-warn, .agent.etat-warn { border-color: var(--warn); } .alerte.etat-err, .agent.etat-err { border-color: var(--err); }
 .activite > li, .activite > li:first-child, .activite > li:last-child, .activite > li:only-child { border-radius: 0; border-width: 0 0 1px; }
 .activite { border-top: 1px solid var(--ligne); }
 .liste > li:hover, a.carte:hover, a.projet:hover, .action:hover { border-color: var(--texte); }
@@ -273,7 +274,7 @@ h2 { font-size: 11px; letter-spacing: 0.14em; font-weight: 500; }
 .compteurs .c-q { color: var(--texte); }
 .changements .icone-ch, .changements .icone-ch.dec, .changements .icone-ch.q { background: transparent; border: 1px solid var(--ligne); color: var(--texte); }
 .etat-ok .pastille, .faits li.etat-ok::before { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ok); }
-.point-etat { background: var(--texte); }
+.point-etat { background: var(--warn); }
 .lien { border-bottom-color: var(--ligne); }
 a { text-decoration-thickness: 1px; }
 input[type="search"], input[type="password"] { border-radius: 4px; background: transparent; }
