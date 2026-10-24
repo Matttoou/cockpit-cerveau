@@ -1,18 +1,19 @@
 :root {
-  --fond: #f4f3ef; --carte: #ffffff; --texte: #1d1d1b; --doux: #6b6a65; --ligne: #e6e4dd; --accent: #3b5bdb; --accent-doux: #edf1ff;
-  --ok: #2f9e44; --info: #868e96; --warn: #e8590c; --err: #e03131; --warn-doux: #fff4e6;
-  --dit: #e7f0ff; --decision: #e6f6ea; --ia: #fff1e0; --source: #f1ecfb;
-  --ombre: 0 1px 2px rgb(0 0 0 / 0.04), 0 2px 8px rgb(0 0 0 / 0.03);
-  --serif: "New York", ui-serif, "Iowan Old Style", Georgia, serif;
+  /* Monochrome à la Visualize Value : noir, blanc, traits fins. Seule couleur : le rouge d'un problème. */
+  --fond: #ffffff; --carte: #ffffff; --texte: #0a0a0a; --doux: #737373; --ligne: #e5e5e5; --accent: #0a0a0a; --accent-doux: #f4f4f4;
+  --ok: #0a0a0a; --info: #c4c4c4; --warn: #0a0a0a; --err: #d92d20; --warn-doux: transparent;
+  --dit: transparent; --decision: transparent; --ia: transparent; --source: transparent;
+  --ombre: none;
+  --serif: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", system-ui, sans-serif;
   --nav: 200px;
   color-scheme: light;
 }
 @media (min-width: 1024px) { :root { --nav: 232px; } }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --fond: #141413; --carte: #1f1f1d; --texte: #ecebe6; --doux: #9c9b95; --ligne: #2e2e2b; --accent: #91a7ff; --accent-doux: #1e2440;
-    --ok: #51cf66; --info: #adb5bd; --warn: #ff922b; --err: #ff6b6b; --warn-doux: #33240f;
-    --dit: #1c2a44; --decision: #1c3524; --ia: #3d2a14; --source: #2c2340;
+    --fond: #000000; --carte: #000000; --texte: #f5f5f5; --doux: #8a8a8a; --ligne: #262626; --accent: #f5f5f5; --accent-doux: #141414;
+    --ok: #f5f5f5; --info: #404040; --warn: #f5f5f5; --err: #ff5c4d; --warn-doux: transparent;
+    --dit: transparent; --decision: transparent; --ia: transparent; --source: transparent;
     --ombre: none;
     color-scheme: dark;
   }
@@ -248,3 +249,39 @@ button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visibl
 }
 .faits details summary { cursor: pointer; color: var(--doux); font-size: 13px; }
 .faits details .faits { margin-top: 8px; }
+
+/* ---------- Minimalisme : cadres d'un trait, angles nets, pas de remplissage ---------- */
+h1, .date-jour, .projet strong, .agent .haut strong, nav .marque { letter-spacing: -0.03em; }
+h1, .date-jour { font-weight: 700; }
+h2 { font-size: 11px; letter-spacing: 0.14em; font-weight: 500; }
+.carte, .liste > li, .banniere, .bloc, .alerte, .action { background: transparent; border: 1px solid var(--ligne); border-radius: 4px; box-shadow: none; }
+.alerte { border-color: var(--texte); }
+.activite > li, .activite > li:first-child, .activite > li:last-child, .activite > li:only-child { border-radius: 0; border-width: 0 0 1px; }
+.activite { border-top: 1px solid var(--ligne); }
+.liste > li:hover, a.carte:hover, a.projet:hover, .action:hover { border-color: var(--texte); }
+.outils button, .retour { background: transparent; border: 1px solid var(--ligne); box-shadow: none; }
+.chip { background: transparent; border: 1px solid var(--ligne); border-radius: 4px; box-shadow: none; }
+.chip.petite { background: transparent; color: var(--texte); border-color: var(--ligne); }
+.bouton { background: var(--texte); color: var(--fond); border-radius: 4px; }
+.bouton.secondaire { background: transparent; color: var(--texte); }
+.copier { color: var(--texte); border-radius: 4px; }
+.tag, .liste .tag { border: 1px solid var(--ligne); font-weight: 500; }
+.statut, .s-en-cours, .s-idée, .s-sujet { background: transparent; color: var(--doux); border: 1px solid var(--ligne); border-radius: 4px; text-transform: uppercase; letter-spacing: 0.08em; font-size: 10px; font-weight: 500; }
+.s-en-cours { color: var(--texte); border-color: var(--texte); }
+.compte { background: transparent; border: 1px solid var(--ligne); border-radius: 4px; }
+.badge, .nouveau { background: var(--texte); color: var(--fond); }
+.compteurs .c-q { color: var(--texte); }
+.changements .icone-ch, .changements .icone-ch.dec, .changements .icone-ch.q { background: transparent; border: 1px solid var(--ligne); color: var(--texte); }
+.etat-ok .pastille, .faits li.etat-ok::before { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ok); }
+.point-etat { background: var(--texte); }
+.lien { border-bottom-color: var(--ligne); }
+a { text-decoration-thickness: 1px; }
+input[type="search"], input[type="password"] { border-radius: 4px; background: transparent; }
+nav { background: color-mix(in srgb, var(--fond) 92%, transparent); }
+nav a[aria-current="page"] { color: var(--texte); }
+#toast { border-radius: 4px; }
+@media (min-width: 780px) {
+  nav a { border-radius: 4px; }
+  nav a[aria-current="page"] { background: transparent; box-shadow: inset 2px 0 var(--texte); border-radius: 0; }
+  nav a[aria-current="page"] svg { color: var(--texte); }
+}
