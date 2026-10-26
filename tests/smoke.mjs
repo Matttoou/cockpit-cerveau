@@ -20,7 +20,9 @@ const FAUX = {
   "profil.md": "# Profil\n\n## En cours\n- [[jardin]]\n",
   "preferences.md": "# Préférences\n- [Dit] Réponses courtes. — 2026-01-10 · chat ab12cd34\n",
   "decisions.md": `# Décisions\n- [Décision] Le jardin passe au compost. [[jardin]] — ${auj} · chat ab12cd34\n`,
-  "a-clarifier.md": `# À clarifier\n- [IA] Arroser le matin ou le soir ? [[jardin]] — ${auj} · chat ab12cd34\n`,
+  "a-clarifier.md": `# À clarifier\n- [IA] Arroser le matin ou le soir ? [[jardin]] — ${auj} · chat ab12cd34\n` +
+    // « Faut-il » la rangerait en choix ; l'étiquette d'Hermès doit l'emporter.
+    `- [IA] [fait] Faut-il écrire Dupont ou Dupond ? [[jardin]] — ${auj} · chat ab12cd34\n`,
   "pour-assistants.md": "# Pour les assistants\n",
   "projets/jardin.md": `---\nniveau: actif\nmaj: ${auj}\n---\n# Jardin\n\n## En cours\n- [Dit] Planter les tomates. — ${auj} · chat ab12cd34\n`,
   [`journal/rapport-${auj}.md`]: "# Rapport\n\n## Questions à arbitrer\n- Faut-il un deuxième composteur ?\n\n## État technique\n- ok\n",
@@ -73,4 +75,20 @@ test("chaque onglet et une fiche s'affichent, sans erreur de console", async () 
   }
   assert.match(await page.locator("#lu").innerText(), /Copie Mac/);
   assert.deepEqual(erreurs, []);
+});
+
+// Texte d'une section de l'onglet Décisions : du titre h2#id jusqu'au h2 suivant.
+const section = (page, id) => page.evaluate((id) => {
+  const out = [];
+  for (let el = document.getElementById(id)?.nextElementSibling; el && el.tagName !== "H2"; el = el.nextElementSibling) out.push(el.innerText);
+  return out.join("\n");
+}, id);
+
+test("une question étiquetée par Hermès est rangée selon son étiquette, sans l'afficher", async () => {
+  const page = await navigateur.newPage();
+  await page.goto(URL + "#decisions");
+  await page.locator("#faits").waitFor();
+  assert.match(await section(page, "faits"), /Dupont ou Dupond/);
+  assert.doesNotMatch(await section(page, "choix"), /Dupont ou Dupond/);
+  assert.doesNotMatch(await page.locator("#vue").innerText(), /\[fait\]/i);
 });
