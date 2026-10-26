@@ -156,6 +156,33 @@
   }
 
   const PIRE = { err: 3, warn: 2, info: 1, ok: 0 };
+  const BASES = ["profil", "preferences", "decisions", "a-clarifier"];
+
+  // Intégrité de la mémoire, à la manière d'un « doctor » : liens [[…]] sans fiche, noms en double, fiches actives sans « En bref ».
+  // Niveau info : à signaler à Hermès, jamais une alerte en page d'accueil.
+  function qualite(fiches, autres = {}) {
+    const out = [], noms = new Set([...fiches.map((f) => f.nom), ...BASES]);
+    const morts = new Map();
+    for (const [nom, texte] of [...fiches.map((f) => [f.nom, f.corps]), ...Object.entries(autres)])
+      for (const m of String(texte || "").matchAll(/\[\[([^\]|#]+)[^\]]*\]\]/g)) {
+        const cible = m[1].trim();
+        if (!noms.has(cible)) morts.set(cible, new Set([...(morts.get(cible) || []), nom]));
+      }
+    if (morts.size)
+      out.push({ id: "liens", titre: "Liens sans fiche", etat: "info", resume: `${morts.size} lien(s) [[…]] vers une fiche inexistante`,
+        detail: [...morts].map(([c, de]) => `${c} (dans ${[...de].join(", ")})`).join(" · ") });
+    const vus = new Map();
+    for (const f of fiches) vus.set(f.nom, [...(vus.get(f.nom) || []), f.dossier]);
+    const doubles = [...vus].filter(([, d]) => d.length > 1);
+    if (doubles.length)
+      out.push({ id: "doublons", titre: "Fiches en double", etat: "info", resume: `${doubles.length} nom(s) de fiche utilisés deux fois`,
+        detail: doubles.map(([n, d]) => `${n} (${d.join(", ")})`).join(" · ") });
+    const sansBref = fiches.filter((f) => f.meta.niveau === "actif" && typeof f.corps === "string" && !sections(f.corps).some((s) => /en bref/i.test(s.titre)));
+    if (sansBref.length)
+      out.push({ id: "sansbref", titre: "Fiches sans « En bref »", etat: "info", resume: `${sansBref.length} fiche(s) actives sans synthèse`,
+        detail: sansBref.map((f) => f.nom).join(", ") });
+    return out;
+  }
 
   // d = { commits, inbox: [chemins], rapport: {date, texte}|null, decisions, pourAssistants, fiches: [{nom, meta}] }
   function sante(d, now) {
@@ -205,6 +232,8 @@
     if (perimees.length)
       out.push({ id: "perimees", titre: "Fiches actives sans nouvelles", etat: "warn",
         resume: `${perimees.length} fiche(s) actives non mises à jour depuis 3 mois`, detail: perimees.map((f) => f.nom).join(", ") });
+
+    out.push(...qualite(d.fiches, { decisions: d.decisions, "a-clarifier": d.aClarifier, profil: d.profil }));
 
     return out.sort((a, b) => PIRE[b.etat] - PIRE[a.etat]);
   }
@@ -261,7 +290,7 @@
   }
 
   const api = { esc, parisDate, parisHeure, depuis, entete, ligne, puces, ouvertes, sections, questionsRapport, blocagesRapport,
-    dateInbox, typeCommit, proche, arbitrages, titre, nature, projet, changements, lectures, sante, etatGlobal, md, enLigne, cherche, pourChatGPT, sansAccent };
+    dateInbox, typeCommit, proche, arbitrages, titre, nature, projet, changements, lectures, qualite, sante, etatGlobal, md, enLigne, cherche, pourChatGPT, sansAccent };
   if (typeof module !== "undefined") module.exports = api;
   else root.Logic = api;
 })(this);

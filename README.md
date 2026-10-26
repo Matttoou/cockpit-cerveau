@@ -31,6 +31,7 @@ Tout vient de la fiche elle-même, sans saisie supplémentaire : « Où on en es
 - **Rapport du matin** : vert si le rapport du jour (heure de Paris) existe. Sinon gris, car Hermès reste silencieux quand la nuit n'a rien apporté. L'envoi Telegram lui-même ne se voit pas depuis le dépôt.
 - **Boîte de dépôt** : orange au-delà de 6 fichiers, ou si un dépôt a plus de 30 h (il a manqué une digestion).
 - **Export** : orange si `pour-assistants.md` date de plus de 2,5 jours ou s'il ne contient pas la dernière décision. C'est le même contrôle que le rapport du matin.
+- **Qualité de la mémoire** (espace Agents, jamais en page d'accueil) : fiches actives sans mise à jour depuis 3 mois (orange) ; liens `[[…]]` vers une fiche inexistante, noms de fiche utilisés dans deux dossiers, fiches actives sans section « En bref » (gris, à signaler à Hermès).
 - **Signalé par Hermès** : chaque ligne des sections « Bloqué » ou « État technique » du dernier rapport. Si Hermès a publié une digestion après le rapport (après 6 h le jour du rapport), le signalement passe en gris, « sans doute résolu », et se replie.
 
 ## Accès
@@ -57,6 +58,7 @@ Tout vient de la fiche elle-même, sans saisie supplémentaire : « Où on en es
 
 ## Développement
 - `logic.js` : logique pure (lecture des lignes `[Tag] … — date · source`, voyants, synthèse projet, changements récents, nature des questions, rendu Markdown sûr, recherche). Tests : `node --test test_logic.mjs`.
+- `CLAUDE.md` : règles de code et contraintes du projet pour Claude Code.
 - `app.js` : chargement (1 appel pour l'arborescence, 1 pour les commits, environ 35 fichiers lus) et affichage.
 - `serve.py` : mode local. Il imite les 3 appels GitHub à partir de `~/Cerveau`. `CERVEAU_REPO=/autre/clone` permet de tester sur un autre dépôt.
 - Le format du rapport du matin a changé le 21/10 : `questionsRapport` lit l'ancien format (« Interventions qui restent », « Prochaines actions ») et le nouveau (« Questions à arbitrer »).
