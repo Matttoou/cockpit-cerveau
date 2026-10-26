@@ -60,6 +60,7 @@ Tout vient de la fiche elle-même, sans saisie supplémentaire : « Où on en es
 - `logic.js` : logique pure (lecture des lignes `[Tag] … — date · source`, voyants, synthèse projet, changements récents, nature des questions, rendu Markdown sûr, recherche). Tests : `node --test test_logic.mjs`.
 - `CLAUDE.md` : règles de code et contraintes du projet pour Claude Code.
 - `app.js` : chargement (1 appel pour l'arborescence, 1 pour les commits, environ 35 fichiers lus) et affichage.
+- `tests/smoke.mjs` : test de fumée. Il crée un faux Cerveau (données fictives) dans un dossier temporaire, lance `serve.py` dessus, ouvre chaque onglet et une fiche dans Chromium et échoue au moindre message d'erreur ou erreur de console. Aucun jeton. Première fois : `npm install && npx playwright install chromium`, puis `npm run smoke`.
 - `serve.py` : mode local. Il imite les 3 appels GitHub à partir de `~/Cerveau`. `CERVEAU_REPO=/autre/clone` permet de tester sur un autre dépôt.
 - Le format du rapport du matin a changé le 21/10 : `questionsRapport` lit l'ancien format (« Interventions qui restent », « Prochaines actions ») et le nouveau (« Questions à arbitrer »).
 
