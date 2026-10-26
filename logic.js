@@ -110,7 +110,9 @@
   const CHOIX = /quel rôle|rôles? (restant|respectif)|vise-t-|reste-t-(il|elle) valable|faut-il|doit-(il|elle)|garder|décider|moratoire/i;
   // Les actions techniques proposées par le rapport (Git, publication, tâches) vont aux agents, pas aux décisions.
   const TECHNIQUE = /\bgit\b|commit|stash|synchronis|publier le rapport|\bcron\b|inbox|jeton|\bskill\b|script/i;
-  const nature = (t) => (TECHNIQUE.test(t) ? "technique" : CHOIX.test(t) ? "choix" : "fait");
+  // L'étiquette posée par Hermès ([technique], [choix] ou [fait]) prime ; les mots-clés ne servent qu'en secours.
+  const ETIQUETTE = /\[(technique|choix|fait)\]/i;
+  const nature = (t) => (ETIQUETTE.exec(t) || [])[1]?.toLowerCase() || (TECHNIQUE.test(t) ? "technique" : CHOIX.test(t) ? "choix" : "fait");
 
   // Ce qui reste ouvert dans une fiche : vérifications, points ouverts, prérequis, idées.
   const PISTE = /à (re)?vérifier|à (re)?contrôler|à confirmer|à formaliser|à préciser|à structurer|à identifier|à venir|à reprendre|à trancher|points? ouverts?|restent ouverts|prérequis|prioritaire|^idée\b/i;
@@ -243,6 +245,7 @@
   // Markdown minimal et sûr : tout est échappé avant la mise en forme.
   function enLigne(t, connues) {
     return esc(t)
+      .replace(/\s*\[(technique|choix|fait)\]\s*/gi, " ").trim() // l'étiquette range la question, elle ne s'affiche pas
       .replace(/~~(.+?)~~/g, "<s>$1</s>")
       .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
       .replace(/`([^`]+)`/g, "<code>$1</code>")

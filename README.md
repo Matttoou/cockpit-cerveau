@@ -21,7 +21,7 @@ Une question du rapport ou d'`a-clarifier.md` est rangée selon sa nature (`natu
 - **technique** (Git, publication, tâches, inbox, skill) : espace Agents ;
 - **choix** (rôle, règle, validité d'une option, « faut-il ») : À décider ;
 - sinon **fait à confirmer** : À confirmer.
-Le classement repose sur des mots-clés. S'il se trompe trop souvent, la solution durable est qu'Hermès étiquette chaque question.
+Si Hermès a posé une étiquette `[technique]`, `[choix]` ou `[fait]` dans la question, elle prime et n'est pas affichée. Sinon, le classement repose sur des mots-clés.
 
 ### Comment est construite une fiche projet
 Tout vient de la fiche elle-même, sans saisie supplémentaire : « Où on en est » = section *En bref* ; « Dernières évolutions » = les 4 lignes les plus récentes (date la plus récente de la provenance) ; « Décisions prises » = lignes `[Décision]` de la fiche et de `decisions.md` qui citent `[[fiche]]` ; « À clarifier » = questions d'`a-clarifier.md` qui citent `[[fiche]]` ; « Points ouverts » = lignes contenant *à vérifier, à confirmer, à préciser, points ouverts, prérequis, prioritaire, Idée*… Une ligne n'apparaît qu'une fois.

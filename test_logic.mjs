@@ -159,6 +159,10 @@ test("nature : choix ou fait à confirmer", () => {
   assert.equal(L.nature("L'option B reste-t-elle valable ?"), "choix");
   assert.equal(L.nature("Orthographe du nom : Dupont ou Dupond ?"), "fait");
   assert.equal(L.nature("Restaurer un état Git propre puis publier le rapport."), "technique");
+  // L'étiquette d'Hermès l'emporte sur les mots-clés, et ne s'affiche pas.
+  assert.equal(L.nature("[IA] [Fait] Faut-il écrire Dupont ou Dupond ?"), "fait");
+  assert.equal(L.nature("[choix] Publier le rapport le soir ?"), "choix");
+  assert.equal(L.enLigne("[IA] [choix] Garder la haie ?"), '<span class="tag tag-IA">IA</span> Garder la haie ?');
 });
 
 const FICHE = { nom: "jardin", corps: "# Jardin potager\n## En bref\n- [Dit] Potager de 20 m². — 2026-01-02 · a\n- Liens : [[maison]]\n## Suivi\n" +
