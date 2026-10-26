@@ -82,6 +82,20 @@ test("santé : digestion en retard, inbox en retard, export incohérent, fiche p
   assert.equal(L.sante({ ...base, commits: [] }, NOW)[0].etat, "err");
 });
 
+test("qualité : liens sans fiche, doublons, fiche active sans « En bref »", () => {
+  const fiches = [
+    { nom: "jardin", dossier: "projets", meta: { niveau: "actif" }, corps: "## En bref\n- [Dit] Voir [[verger]] et [[profil]]." },
+    { nom: "verger", dossier: "projets", meta: { niveau: "actif" }, corps: "- [Dit] Lié à [[serre|la serre]] et [[jardin#plan]]." },
+    { nom: "verger", dossier: "sujets", meta: { niveau: "reference" }, corps: "" },
+  ];
+  const q = L.qualite(fiches, { decisions: "- [Décision] Arroser [[serre]]." });
+  assert.equal(q.find((x) => x.id === "liens").detail, "serre (dans verger, decisions)");
+  assert.equal(q.find((x) => x.id === "doublons").detail, "verger (projets, sujets)");
+  assert.equal(q.find((x) => x.id === "sansbref").detail, "verger");
+  assert.ok(q.every((x) => x.etat === "info")); // jamais une alerte en page d'accueil
+  assert.deepEqual(L.qualite([fiches[0], { ...fiches[1], corps: "## En bref\n- [Dit] [[jardin]]" }]), []);
+});
+
 test("santé : blocage signalé et rapport absent", () => {
   const s = L.sante({ ...base, commits: [commit("Hermès", "2026-01-14T01:30:00Z", "digestion")], rapport: { date: "2026-01-14", texte: "### Bloqué ou en retard\n- outil absent" } }, NOW);
   assert.equal(etat(s, "blocage"), "warn");

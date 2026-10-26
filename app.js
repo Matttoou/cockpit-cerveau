@@ -69,7 +69,8 @@ function aTrancher() {
 }
 
 function sante() {
-  const s = L.sante({ ...D, decisions: D.textes["decisions.md"], pourAssistants: D.textes["pour-assistants.md"] }, MAINTENANT());
+  const s = L.sante({ ...D, decisions: D.textes["decisions.md"], pourAssistants: D.textes["pour-assistants.md"],
+    aClarifier: D.textes["a-clarifier.md"], profil: D.textes["profil.md"] }, MAINTENANT());
   return { s, global: L.etatGlobal(s), alertes: s.filter((x) => x.etat === "warn" || x.etat === "err") };
 }
 
@@ -235,7 +236,7 @@ function vueAgents() {
     </div>
     ${aTrancher().technique.length ? `<h2>Actions techniques demandées par Hermès</h2><ul class="liste">${aTrancher().technique.map((x) => `<li class="question actif"><div>${L.enLigne(x.texte, connues())}
       <small>Rapport du ${court(D.rapport.date)}${par("blocage").some((b) => b.etat === "info") ? " · Hermès a publié depuis : vérifier si c'est encore utile" : ""}</small></div>${copier(x.texte)}</li>`).join("")}</ul>` : ""}
-    ${par("perimees").length ? `<h2>Qualité de la mémoire</h2><ul class="liste">${par("perimees").map((x) => `<li class="sante etat-${x.etat}"><div class="pastille"></div><div><strong>${L.esc(x.resume)}</strong><small>${L.esc(x.detail)}</small></div></li>`).join("")}</ul>` : ""}
+    ${par("perimees", "liens", "doublons", "sansbref").length ? `<h2>Qualité de la mémoire</h2><ul class="liste">${par("perimees", "liens", "doublons", "sansbref").map((x) => `<li class="sante etat-${x.etat}"><div class="pastille"></div><div><strong>${L.esc(x.resume)}</strong><small>${L.esc(x.detail)}</small></div></li>`).join("")}</ul>` : ""}
     <h2>Ce qu'Hermès a retenu récemment</h2>
     <p class="intro">Sur les ${lus.total} dernières conversations lues, ${lus.retenues.length} ${lus.retenues.length > 1 ? "ont" : "a"} apporté quelque chose ; ${lus.ignorees} n'avaient rien de durable.</p>
     <ul class="liste">${lus.retenues.map((x) => `<li><div>${L.enLigne(x.texte, connues())}<small>${court(x.date)} · ${L.esc(x.source)}</small></div></li>`).join("")}</ul>
