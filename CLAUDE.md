@@ -38,3 +38,4 @@ Page statique (HTML, CSS, JS sans bibliothèque) qui lit le dépôt `Matttoou/ce
 
 ## Passage de relais
 - Si la session est longue ou interrompue, écris un point d'étape : objectif, ce qui marche (avec la preuve), ce qui a échoué, ce qui reste, prochaine action.
+- Fin d'une session qui fusionne des changements : déposer dans `Matttoou/cerveau` un fichier neuf `inbox/AAAA-MM-JJ-claude-code-<id>.md` qui résume ce qui a changé et pourquoi, les décisions de Matthias (`[Décision]`), les propositions (`[IA]`) et le point d'arrêt. Jamais de modification des fiches : Hermès digère. Les sessions dans le cloud ne sont pas captées par `sync-mac.py`.
